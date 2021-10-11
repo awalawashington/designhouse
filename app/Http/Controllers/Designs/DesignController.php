@@ -8,7 +8,11 @@ use App\Models\Models\Design;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DesignResource;
 use Illuminate\Support\Facades\Storage;
+use App\Repositories\Eloquent\Criteria\IsLive;
 use App\Repositories\Contracts\DesignInterface;
+use App\Repositories\Eloquent\Criteria\ForUser;
+use App\Repositories\Eloquent\Criteria\EagerLoad;
+use App\Repositories\Eloquent\Criteria\LatestFirst;
 
 class DesignController extends Controller
 {
@@ -22,7 +26,12 @@ class DesignController extends Controller
 
     public function index()
     {
-        $designs = $this->designs->all();
+        $designs = $this->designs->withCriteria([
+            new LatestFirst(),
+            new IsLive(),
+            new ForUser(1),
+            new EagerLoad(['user', 'comments'])
+        ])->all();
         return DesignResource::collection($designs);
     }
 
@@ -34,8 +43,7 @@ class DesignController extends Controller
 
     public function update(Request $request, $id)
     {
-        $design = Design::findOrFail($id);
-
+        $design = $this->designs->find($id);
         $this->authorize('update', $design);
 
         $this->validate($request,[
@@ -45,8 +53,8 @@ class DesignController extends Controller
         ]);
 
         
-
-        $design->update([
+        //is live????
+        $this->designs->update($id, [
             'title' => $request->title,
             'description' => $request->description,
             'slug' => Str::slug($request->title),
@@ -54,14 +62,14 @@ class DesignController extends Controller
         ]);
 
         //apply the tags
-        $design->retag($request->tags);
+        $this->designs->applyTags($id, $request->tags);
 
         return new DesignResource($design);
     }
 
     public function destroy(Request $request, $id)
     {
-        $design = Design::findOrFail($id);
+        $design = $this->designs->find($id);
 
         $this->authorize('delete', $design);
 
@@ -76,9 +84,22 @@ class DesignController extends Controller
             }
         }
 
-        $design->delete();
+        $this->designs->delete($id);
 
         return response()->json(['message' => 'Record deleted'], 200);
 
+    }
+
+    public function like($id)
+    {
+        $this->designs->like($id);
+        return response()->json(['message' => 'successful']);
+    }
+
+    public function checkIfUserHasLiked($designId)
+    {
+        $isLiked = $this->designs->isLikedByUser($designId);
+
+        return response()->json(['liked' => $isLiked], 200);
     }
 }

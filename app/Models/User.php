@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Models\Design;
+use App\Models\Models\Comment;
 use App\Notifications\VerifyEmail;
 use App\Notifications\ResetPassword;
 use Illuminate\Notifications\Notifiable;
@@ -69,6 +70,11 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     public function designs()
     {
         return $this->hasMany(Design::class);
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
     }
 
     /**

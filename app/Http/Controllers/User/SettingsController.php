@@ -9,10 +9,18 @@ use App\Rules\CheckSamePassword;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use Grimzy\LaravelMysqlSpatial\Types\Point;
+use App\Repositories\Contracts\UserInterface;
 
 
 class SettingsController extends Controller
 {
+    protected $users;
+
+    public function __construct(UserInterface $users)
+    {
+        $this->users = $users;
+    }
+    
     public function updateProfile(Request $request)
     {
         $user = auth()->user();
@@ -28,7 +36,7 @@ class SettingsController extends Controller
 
         $location = new Point($request->location['latitude'], $request->location['longitude']);
 
-        $user->update([
+        $user =  $this->users->update(auth()->user()->id, [
             "name" => $request->name,
             "tagline" => $request->tagline,
             "about" => $request->about,
@@ -37,7 +45,8 @@ class SettingsController extends Controller
             "location" => $location
         ]);
 
-        return new UserResource($user);
+        //to be corrected
+        return new UserResource(auth()->user());
 
     }
 

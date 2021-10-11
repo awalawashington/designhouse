@@ -2,10 +2,12 @@
 
 namespace App\Repositories\Eloquent;
 
+use Illuminate\Support\Arr;
 use App\Repositories\Contracts\BaseInterface;
+use App\Repositories\Criteria\InterfaceCriteria;
 
 
-abstract class BaseRepository implements BaseInterface
+abstract class BaseRepository implements BaseInterface, InterfaceCriteria
 {
     protected $model;
 
@@ -16,7 +18,7 @@ abstract class BaseRepository implements BaseInterface
 
     public function all()
     {
-        return $this->model->all();
+        return $this->model->get();
     }
 
     public function find($id){
@@ -48,6 +50,17 @@ abstract class BaseRepository implements BaseInterface
         $record = $this->find($id);
         $record->delete($id);
     }
+
+    public function withCriteria(... $criteria){
+        $criteria = Arr::flatten($criteria);
+
+        foreach ($criteria as $criterion) {
+            $this->model = $criterion->apply($this->model);
+        }
+
+        return $this;
+    }
+
 
 
     protected function getModelClass()

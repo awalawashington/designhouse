@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 
+use App\Http\Resources\CommentResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class DesignResource extends JsonResource
@@ -17,7 +18,6 @@ class DesignResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            "user" => new UserResource($this->user),
             "title" => $this->title,
             "description" => $this->description,
             "slug" => $this->slug,
@@ -34,7 +34,10 @@ class DesignResource extends JsonResource
             "updated_dates" => [
                 "updated_at_humans" => $this->updated_at->diffForHumans(),
                 "updated_at" => $this->updated_at
-            ]
+            ],
+            "likes_count" => $this->likes()->count(),
+            "user" => new UserResource($this->whenLoaded('user')),
+            "comments" => CommentResource::collection($this->whenLoaded('comments'))
         ];
     }
 }

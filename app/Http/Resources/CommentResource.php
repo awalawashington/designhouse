@@ -2,9 +2,10 @@
 
 namespace App\Http\Resources;
 
+use App\Http\Resources\UserResource;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class UserResource extends JsonResource
+class CommentResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,18 +17,15 @@ class UserResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            "name" => $this->name,
-            "username" => $this->username,
-            "email" => $this->email,
-            "tagline" => $this->tagline,
-            "about" => $this->about,
-            "location" => $this->location,
-            "formatted_address" => $this->formatted_address,
-            "available_to_hire" => $this->available_to_hire,
-            "designs" => $this->designs,
+            "user" => new UserResource($this->user),
+            "body" => $this->body,
             "created_dates" => [
                 "created_at_humans" => $this->created_at->diffForHumans(),
                 "created_at" => $this->created_at
+            ],
+            "updated_dates" => [
+                "updated_at_humans" => $this->updated_at->diffForHumans(),
+                "updated_at" => $this->updated_at
             ]
         ];
     }
