@@ -49,12 +49,14 @@ class DesignController extends Controller
         $this->validate($request,[
             'title' => ['required', 'unique:designs,title,'.$id],
             'description' => ['string', 'required', 'min:20', 'max:140'],
-            'tags' => ['required']
+            'tags' => ['required'],
+            'team' => ['required_if:assign_to_team,true']
         ]);
 
         
         //is live????
         $this->designs->update($id, [
+            'team_id' => $request->team,
             'title' => $request->title,
             'description' => $request->description,
             'slug' => Str::slug($request->title),
@@ -102,4 +104,14 @@ class DesignController extends Controller
 
         return response()->json(['liked' => $isLiked], 200);
     }
+
+    public function search(Request $request)
+    {
+        $designs = $this->designs->search($request);
+
+        return DesignResource::collection($designs);
+    }
 }
+
+
+

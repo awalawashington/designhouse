@@ -2,8 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Models\Chat;
+use App\Models\Models\Team;
 use App\Models\Models\Design;
 use App\Models\Models\Comment;
+use App\Models\Models\Message;
+use App\Models\Models\Invitation;
 use App\Notifications\VerifyEmail;
 use App\Notifications\ResetPassword;
 use Illuminate\Notifications\Notifiable;
@@ -86,6 +90,48 @@ class User extends Authenticatable implements JWTSubject, MustVerifyEmail
     {
         return $this->getKey();
     }
+
+    //teams that user belongs to 
+    public function teams()
+    {
+        return $this->belongsToMany(Team::class)->withTimestamps();
+    }
+
+    public function ownedTeams()
+    {
+        return $this->teams()->where('owner_id', $this->id);
+    }
+
+    public function isOwnerOfTeam($team)
+    {
+        return (bool)$this->teams()->where('id', $team->id)->where('owner_id', $this->id)->count();
+    }
+
+    public function invitations()
+    {
+        return $this->hasMany(Invitation::class, 'recipient_email', 'email');
+    }
+
+    public function chats()
+    {
+        return $this->belongsToMany(Chat::class, 'participants');
+    }
+
+    public function messages()
+    {
+        return $this->hasMany(Message::class);
+    }
+
+    public function getChatWithUser($user_id)
+    {
+        $chat = $this->chats()->whereHas('participants', function($query) use ($user_id)
+        {
+            $query->where('user_id', $user_id);
+        })->first();
+
+        return $chat;
+    }
+
 
     /**
      * Return a key value array, containing any custom claims to be added to the JWT.

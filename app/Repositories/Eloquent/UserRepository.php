@@ -13,4 +13,8 @@ class UserRepository extends BaseRepository implements UserInterface
         //returning the namespace of the model 'App\Models\User'
         return User::class;
     }
+
+    public function findByEmail($email){
+        return $this->model->where('email', $email)->first();
+    }
 }

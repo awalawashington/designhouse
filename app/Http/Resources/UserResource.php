@@ -18,13 +18,15 @@ class UserResource extends JsonResource
             'id' => $this->id,
             "name" => $this->name,
             "username" => $this->username,
-            "email" => $this->email,
+            $this->mergeWhen(auth()->check() && auth()->id() == $this->id, [
+                "email" => $this->email,
+            ]),
             "tagline" => $this->tagline,
             "about" => $this->about,
             "location" => $this->location,
             "formatted_address" => $this->formatted_address,
             "available_to_hire" => $this->available_to_hire,
-            "designs" => $this->designs,
+            "designs" => DesignResource::collection($this->whenLoaded('designs')),
             "created_dates" => [
                 "created_at_humans" => $this->created_at->diffForHumans(),
                 "created_at" => $this->created_at
